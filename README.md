@@ -7,6 +7,8 @@ A repository that contains the project of Zehn team.
 * **Lớp:** IS211.M11
 * **Năm học:** HKI NH 2021-2022
 * **Giảng viên:** 
+  * ThS. Thái Bảo Trân
+  * CN. Nguyễn Minh Nhựt
 
 ## Thông tin nhóm
 STT | Họ tên | MSSV | Github
