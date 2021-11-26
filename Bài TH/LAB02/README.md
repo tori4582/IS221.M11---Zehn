@@ -1,0 +1,15 @@
+# THỰC HÀNH BUỔI 2. PHÂN QUYỀN VÀ DATABASE LINK
+
+## Thực hiện Trigger (Cá nhân)
+
+1. VIẾT TRIGGER CHO QUẢN LÝ HÃNG HÀNG KHÔNG 
+
+2. THỰC HIỆN KẾT NỐI DATABASE LINK GIỮA HAI MÁY ẢO (VIRTUAL BOX)
+
+3. THỰC HIỆN PHÂN QUYỀN TRÊN HAI MÁY ẢO
+
+## Thực hiện Database Link (Làm nhóm)
+
+1. NGHIÊN CỨU RADMIN THỰC HIỆN DATABASE LINK KẾT NỐI MÁY THẬT (LÀM NHÓM) 
+2. VIẾT BÁO CÁO TRÊN MÔI TRƯỜNG MÁY MÁY THẬT RADMIN
+
