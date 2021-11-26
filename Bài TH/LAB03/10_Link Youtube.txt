@@ -1,0 +1,19 @@
+LỚP: IS211.M11.2
+Bài thực hành 3: KIỂM TRA DATABASE LINK VÀ TRUY VẤN PHÂN TÁN
+
+Nhóm sinh viên thực hiện: Nhóm 10
+STT	Họ tên	            MSSV	
+1	Phạm Quốc Hùng	    19521579
+2	Chu Hà Thảo Ngân    19521882	
+3	Thái Minh Triết	    19522397	
+4	Võ Tuấn Anh	    19521226	
+
+Link video Bài thực hành 3
+(tách làm 2 videos)
+
+Sharepoint: 
+* Video 1 (3h8m): https://uithcm.sharepoint.com/sites/IS211-Zehn/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FIS211%2DZehn%2FShared%20Documents%2FGeneral%2FRecordings%2FMeeting%20in%20%5FGeneral%5F%2D20211030%5F133833%2DMeeting%20Recording%201%2Emp4&parent=%2Fsites%2FIS211%2DZehn%2FShared%20Documents%2FGeneral%2FRecordings
+* Video 2 (17m): https://uithcm.sharepoint.com/sites/IS211-Zehn/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FIS211%2DZehn%2FShared%20Documents%2FGeneral%2FRecordings%2FMeeting%20in%20%5FGeneral%5F%2D20211030%5F133833%2DMeeting%20Recording%201%2Emp4&parent=%2Fsites%2FIS211%2DZehn%2FShared%20Documents%2FGeneral%2FRecordings
+
+Drive: 
+https://drive.google.com/drive/folders/18--a2iFCBOjTIAvu8Zw4AVqUXTmx-oAV?usp=sharing
