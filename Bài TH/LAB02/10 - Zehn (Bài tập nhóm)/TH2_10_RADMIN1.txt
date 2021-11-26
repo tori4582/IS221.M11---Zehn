@@ -1,0 +1,15 @@
+LỚP: IS211.M11.2
+Bài thực hành 2: TẠO DATABASE LINK TRÊN RADMIN MẠNG VPN 
+
+Nhóm sinh viên thực hiện: Nhóm 10
+STT	Họ tên	            MSSV	
+1	Phạm Quốc Hùng	    19521579
+2	Chu Hà Thảo Ngân    19521882	
+3	Thái Minh Triết	    19522397	
+4	Võ Tuấn Anh	    19521226	
+
+Link video thực hiện kết nối 2 máy thật dùng Radmin VPN
+
+Sharepoint: https://uithcm.sharepoint.com/sites/IS211-Zehn/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FIS211%2DZehn%2FShared%20Documents%2FGeneral%2FRecordings%2FMeeting%20in%20%5FGeneral%5F%2D20211028%5F215356%2DMeeting%20Recording%2Emp4&parent=%2Fsites%2FIS211%2DZehn%2FShared%20Documents%2FGeneral%2FRecordings
+
+Drive: https://drive.google.com/file/d/12X1h4-3p98dNBnRs9oGbrF0eh96AGCS0/view?usp=sharing
