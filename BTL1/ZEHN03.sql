@@ -1,11 +1,11 @@
---==========================May ZEHN01========================================--
+--==========================May ZEHN03========================================--
 
 -- Login as sysdba and create user and grant privilege
-CREATE USER zehn_01 IDENTIFIED BY 123456;
-GRANT CONNECT, DBA to zehn_01;
+CREATE USER zehn_03 IDENTIFIED BY 123456;
+GRANT CONNECT, DBA to zehn_03;
 
 --==========================CREATE TABLE======================================--
-CREATE TABLE zehn_01.ZEHNSTORE(
+CREATE TABLE zehn_03.ZEHNSTORE(
     StoreId     VARCHAR2(10),
     StoreName   NVARCHAR2(40) NOT NULL,  
     Address     NVARCHAR2(40) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE zehn_01.ZEHNSTORE(
     CONSTRAINT PK_ZEHNSTORE PRIMARY KEY(StoreId)
 );
 
-CREATE TABLE zehn_01.PHARMACIST(
+CREATE TABLE zehn_03.PHARMACIST(
     PharmacistId    VARCHAR2(10),
     FullName        NVARCHAR2(30)   NOT NULL,
     Gender          NVARCHAR2(5)    NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE zehn_01.PHARMACIST(
     CONSTRAINT PK_PHARMACIST PRIMARY KEY(PharmacistId)
 );
 
-CREATE TABLE zehn_01.CUSTOMER(
+CREATE TABLE zehn_03.CUSTOMER(
     PhoneNumber     VARCHAR2(15),
     FullName        VARCHAR2(30),
     Gender          VARCHAR2(5),
@@ -38,7 +38,7 @@ CREATE TABLE zehn_01.CUSTOMER(
     CONSTRAINT PK_CUSTOMER PRIMARY KEY(PhoneNumber)
 );
 
-CREATE TABLE zehn_01.PRODUCT(
+CREATE TABLE zehn_03.PRODUCT(
     ProductId       VARCHAR2(10),
     ProductName     NVARCHAR2(40)   NOT NULL,
     ProductType     NVARCHAR2(30),
@@ -49,7 +49,7 @@ CREATE TABLE zehn_01.PRODUCT(
     CONSTRAINT PK_PRODUCT PRIMARY KEY(ProductId)
 );
 
-CREATE TABLE zehn_01.RECEIPT(
+CREATE TABLE zehn_03.RECEIPT(
     ReceiptId       VARCHAR2(10),
     CustomerId      VARCHAR2(15)    NOT NULL    UNIQUE,
     PharmacistId    VARCHAR2(10)    NOT NULL    UNIQUE,
@@ -61,71 +61,57 @@ CREATE TABLE zehn_01.RECEIPT(
     CONSTRAINT PK_RECEIPT PRIMARY KEY(ReceiptId)
 );
 
-CREATE TABLE zehn_01.RECEIPTDETAIL(
+CREATE TABLE zehn_03.RECEIPTDETAIL(
     ReceiptId       VARCHAR2(10),
     ProductId       VARCHAR2(10),
     Quantity        NUMBER          DEFAULT 1,
     Price           NUMBER          NOT NULL,
     Amount          NUMBER          NOT NULL,
     
-    CONSTRAINT zehn_01.PK_DETAIL PRIMARY KEY(ReceiptId, ProductId)
+    CONSTRAINT zehn_03.PK_DETAIL PRIMARY KEY(ReceiptId, ProductId)
 );
 --==========================FOREIGN KEY=======================================--
-ALTER TABLE zehn_01.PHARMACIST
+ALTER TABLE zehn_03.PHARMACIST
 ADD CONSTRAINT FK_PHARMARCIST_StoreId FOREIGN KEY(StoreId)
-REFERENCES zehn_01.ZEHNSTORE(StoreId);
+REFERENCES zehn_03.ZEHNSTORE(StoreId);
 
-ALTER TABLE zehn_01.RECEIPT
+ALTER TABLE zehn_03.RECEIPT
 ADD CONSTRAINT FK_RECEIPT_CustomerId FOREIGN KEY(CustomerId)
-REFERENCES zehn_01.CUSTOMER(PhoneNumber);
+REFERENCES zehn_03.CUSTOMER(PhoneNumber);
 
-ALTER TABLE zehn_01.RECEIPT
+ALTER TABLE zehn_03.RECEIPT
 ADD CONSTRAINT FK_RECEIPT_StoreId FOREIGN KEY(StoreId)
-REFERENCES zehn_01.ZEHNSTORE(StoreId);
+REFERENCES zehn_03.ZEHNSTORE(StoreId);
 
-ALTER TABLE zehn_01.RECEIPT
+ALTER TABLE zehn_03.RECEIPT
 ADD CONSTRAINT FK_RECEIPT_PharmacistId FOREIGN KEY(PharmacistId)
-REFERENCES zehn_01.PHARMACIST(PharmacistId);
+REFERENCES zehn_03.PHARMACIST(PharmacistId);
 
-ALTER TABLE zehn_01.RECEIPTDETAIL
+ALTER TABLE zehn_03.RECEIPTDETAIL
 ADD CONSTRAINT FK_DETAIL_ReceiptId FOREIGN KEY(ReceiptId)
-REFERENCES zehn_01.RECEIPT(ReceiptId);
+REFERENCES zehn_03.RECEIPT(ReceiptId);
 
-ALTER TABLE zehn_01.RECEIPTDETAIL
+ALTER TABLE zehn_03.RECEIPTDETAIL
 ADD CONSTRAINT FK_DETAIL_ProductId FOREIGN KEY(ProductId)
-REFERENCES zehn_01.PRODUCT(ProductId);
+REFERENCES zehn_03.PRODUCT(ProductId);
 
 --==========================INSERT DATA=======================================--
 -- disable foreign key
-ALTER TABLE zehn_01.PHARMACIST      DISABLE CONSTRAINT FK_PHARMARCIST_StoreId;
-ALTER TABLE zehn_01.RECEIPT         DISABLE CONSTRAINT FK_RECEIPT_CustomerId;
-ALTER TABLE zehn_01.RECEIPT         DISABLE CONSTRAINT FK_RECEIPT_StoreId;
-ALTER TABLE zehn_01.RECEIPT         DISABLE CONSTRAINT FK_RECEIPT_PharmacistId;
-ALTER TABLE zehn_01.RECEIPTDETAIL   DISABLE CONSTRAINT FK_DETAIL_ReceiptId;
-ALTER TABLE zehn_01.RECEIPTDETAIL   DISABLE CONSTRAINT FK_DETAIL_ProductId;
-
--- insert data here
-    -- insert data into ZEHNSTORE
-INSERT INTO zehn_01.ZEHNSTORE VALUES('ZS01', 'Zehn Store Go Vap','Le Duc Tho, Go Vap, TPHCM');
-
-    -- insert data into PHARMACIST
-    
-    -- insert data into CUSTOMER
-    
-    -- insert data into PRODUCT
-    
-    -- insert data into RECEIPT
-    
-    -- insert data into RECEIPTDETAIL
-    
-    
+ALTER TABLE zehn_03.PHARMACIST      DISABLE CONSTRAINT FK_PHARMARCIST_StoreId;
+ALTER TABLE zehn_03.RECEIPT         DISABLE CONSTRAINT FK_RECEIPT_CustomerId;
+ALTER TABLE zehn_03.RECEIPT         DISABLE CONSTRAINT FK_RECEIPT_StoreId;
+ALTER TABLE zehn_03.RECEIPT         DISABLE CONSTRAINT FK_RECEIPT_PharmacistId;
+ALTER TABLE zehn_03.RECEIPTDETAIL   DISABLE CONSTRAINT FK_DETAIL_ReceiptId;
+ALTER TABLE zehn_03.RECEIPTDETAIL   DISABLE CONSTRAINT FK_DETAIL_ProductId;
+-- insert data into ZEHNSTORE
+INSERT INTO zehn_03.ZEHNSTORE VALUES('ZS03', 'Zehn Store Quan 9','Duong D2, Quan 9, TPHCM');
 -- enable foreign key
-ALTER TABLE zehn_01.PHARMACIST      ENABLE CONSTRAINT FK_PHARMARCIST_StoreId;
-ALTER TABLE zehn_01.RECEIPT         ENABLE CONSTRAINT FK_RECEIPT_CustomerId;
-ALTER TABLE zehn_01.RECEIPT         ENABLE CONSTRAINT FK_RECEIPT_StoreId;
-ALTER TABLE zehn_01.RECEIPT         ENABLE CONSTRAINT FK_RECEIPT_PharmacistId;
-ALTER TABLE zehn_01.RECEIPTDETAIL   ENABLE CONSTRAINT FK_DETAIL_ReceiptId;
-ALTER TABLE zehn_01.RECEIPTDETAIL   ENABLE CONSTRAINT FK_DETAIL_ProductId;
+ALTER TABLE zehn_03.PHARMACIST      ENABLE CONSTRAINT FK_PHARMARCIST_StoreId;
+ALTER TABLE zehn_03.RECEIPT         ENABLE CONSTRAINT FK_RECEIPT_CustomerId;
+ALTER TABLE zehn_03.RECEIPT         ENABLE CONSTRAINT FK_RECEIPT_StoreId;
+ALTER TABLE zehn_03.RECEIPT         ENABLE CONSTRAINT FK_RECEIPT_PharmacistId;
+ALTER TABLE zehn_03.RECEIPTDETAIL   ENABLE CONSTRAINT FK_DETAIL_ReceiptId;
+ALTER TABLE zehn_03.RECEIPTDETAIL   ENABLE CONSTRAINT FK_DETAIL_ProductId;
 
 --==========================GRANTING PRIVILIGES===============================--
 
@@ -133,14 +119,4 @@ ALTER TABLE zehn_01.RECEIPTDETAIL   ENABLE CONSTRAINT FK_DETAIL_ProductId;
 -- create or replace TRIGGER
 
 -- test the TRIGGERs
-
---==========================PROCEDURE=========================================--
-
---==========================FUNCTION==========================================--
-
---==========================SELECT QUERIES====================================--
-
---==========================ISOLATION LEVEL===================================--
-
---==========================QUERY OPTIMIZER===================================--
 
