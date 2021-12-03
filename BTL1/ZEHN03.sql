@@ -112,11 +112,3 @@ ALTER TABLE zehn_03.RECEIPT         ENABLE CONSTRAINT FK_RECEIPT_StoreId;
 ALTER TABLE zehn_03.RECEIPT         ENABLE CONSTRAINT FK_RECEIPT_PharmacistId;
 ALTER TABLE zehn_03.RECEIPTDETAIL   ENABLE CONSTRAINT FK_DETAIL_ReceiptId;
 ALTER TABLE zehn_03.RECEIPTDETAIL   ENABLE CONSTRAINT FK_DETAIL_ProductId;
-
---==========================GRANTING PRIVILIGES===============================--
-
---==========================TRIGGER===========================================--
--- create or replace TRIGGER
-
--- test the TRIGGERs
-
