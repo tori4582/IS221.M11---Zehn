@@ -154,10 +154,15 @@ INSERT INTO zehn_02.PHARMACIST VALUES('PH38', 'Nguyen Phuong Hien', 'Nu', '1986-
 INSERT INTO zehn_02.PHARMACIST VALUES('PH39', 'Tran Le Hanh Vi', 'Nu', '1999-04-03', '0975807200', 'Phuong Quan Bau, Thanh pho Vinh, Nghe An', 2019, 2, 'ZS02');
 INSERT INTO zehn_02.PHARMACIST VALUES('PH40', 'Nguyen Tran Buu Diep', 'Nam', '1993-08-08', '0709897146', 'Xa Hong Phong, Huyen Cao Loc, Lang Son', 2021, 1, 'ZS02');  
 
-    -- insert data into CUSTOMER, PRODUCT
--- Execute on ZEHN_01 machine because of faking replication
+    -- insert data into CUSTOMER
+-- login SQLPLUS zehn_02/123456
+INSERT INTO zehn_02.CUSTOMER
+SELECT * FROM zehn_01.CUSTOMER@manager_02_01;
+
     -- insert data into PRODUCT
--- Execute on ZEHN_01 machine because of faking replication
+-- login SQLPLUS zehn_02/123456
+INSERT INTO zehn_02.PRODUCT
+SELECT * FROM zehn_01.PRODUCT@manager_02_01;
 
     -- insert data into RECEIPT
 INSERT INTO zehn_02.RECEIPT VALUES('R21', '0380882442', 'PH21', 'ZS02', '2021-07-31', 124000, 'Cash');    
@@ -343,6 +348,9 @@ GRANT DELETE ON zehn_02.RECEIPT TO manager_02;
 GRANT INSERT ON zehn_02.RECEIPTDETAIL TO manager_02;
 GRANT DELETE ON zehn_02.RECEIPTDETAIL TO manager_02;
 GRANT UPDATE ON zehn_02.RECEIPTDETAIL TO manager_02;
+    
+    -- PRODUCT
+grant select on zehn_02.product to manager_02;
 
 -----GRANTING for CASHIER-----
 GRANT CONNECT, CREATE SESSION TO cashier_02;
@@ -380,4 +388,11 @@ GRANT SELECT ON zehn_02.RECEIPTDETAIL TO cashier_02;
 --==========================ISOLATION LEVEL===================================--
 
 --==========================QUERY OPTIMIZER===================================--
+
+
+
+
+
+
+
 
