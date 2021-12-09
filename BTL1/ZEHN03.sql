@@ -1,10 +1,32 @@
 --==========================May ZEHN03========================================--
 
--- Login as sysdba and create user and grant privilege
+-- Login sqlplus as SYSDBA and create user and grant privilege
+ALTER SESSION SET "_ORACLE_SCRIPT" = TRUE;
+
 CREATE USER zehn_03 IDENTIFIED BY 123456;
-GRANT CONNECT, DBA to zehn_03;
+GRANT CONNECT, DBA TO zehn_03;
+
+CREATE USER director IDENTIFIED BY 123456;
+CREATE USER zehn_bridge IDENTIFIED BY 123456;
+CREATE USER manager_03 IDENTIFIED BY 123456;
+CREATE USER cashier_03 IDENTIFIED BY 123456;
+
+-- Create Role R_Director and grant priviliges
+
+GRANT CREATE SESSION, CONNECT, RESOURCE TO director;
+
+GRANT CREATE PUBLIC DATABASE LINK TO director;
+GRANT ALTER PUBLIC DATABASE LINK TO director;
+GRANT DROP PUBLIC DATABASE LINK TO director;
+
+GRANT CREATE PUBLIC DATABASE LINK TO manager_03;
+
+GRANT CREATE USER TO director;
+GRANT ALTER USER TO director;
+GRANT DROP USER TO director;
 
 --==========================CREATE TABLE======================================--
+-- Open SQL Developer, add a new connection using user zehn_03
 CREATE TABLE zehn_03.ZEHNSTORE(
     StoreId     VARCHAR2(10),
     StoreName   NVARCHAR2(40) NOT NULL,  
@@ -19,10 +41,10 @@ CREATE TABLE zehn_03.PHARMACIST(
     Gender          NVARCHAR2(5)    NOT NULL,
     DoB             DATE            NOT NULL,
     PhoneNumber     VARCHAR2(15)    NOT NULL,
-    Address         NVARCHAR2(40)   NOT NULL,
+    Address         NVARCHAR2(150)  NOT NULL,
     WorkYear        NUMBER          NOT NULL,
     WorkShift       NUMBER          NOT NULL,
-    StoreId         VARCHAR2(10)    NOT NULL    UNIQUE,
+    StoreId         VARCHAR2(10)    NOT NULL,
     
     CONSTRAINT PK_PHARMACIST PRIMARY KEY(PharmacistId)
 );
@@ -40,7 +62,7 @@ CREATE TABLE zehn_03.CUSTOMER(
 
 CREATE TABLE zehn_03.PRODUCT(
     ProductId       VARCHAR2(10),
-    ProductName     NVARCHAR2(40)   NOT NULL,
+    ProductName     NVARCHAR2(150)   NOT NULL,
     ProductType     NVARCHAR2(30),
     ExpiredDate     DATE            NOT NULL,
     CountUnit       NVARCHAR2(10),
@@ -51,9 +73,9 @@ CREATE TABLE zehn_03.PRODUCT(
 
 CREATE TABLE zehn_03.RECEIPT(
     ReceiptId       VARCHAR2(10),
-    CustomerId      VARCHAR2(15)    NOT NULL    UNIQUE,
-    PharmacistId    VARCHAR2(10)    NOT NULL    UNIQUE,
-    StoreId         VARCHAR2(10)    NOT NULL    UNIQUE,
+    CustomerId      VARCHAR2(15)    NOT NULL,
+    PharmacistId    VARCHAR2(10)    NOT NULL,
+    StoreId         VARCHAR2(10)    NOT NULL,
     PaymentTime     DATE            NOT NULL,
     Total           NUMBER          NOT NULL,
     PaymentMethod   VARCHAR(10)     DEFAULT 'Cash',
@@ -68,7 +90,7 @@ CREATE TABLE zehn_03.RECEIPTDETAIL(
     Price           NUMBER          NOT NULL,
     Amount          NUMBER          NOT NULL,
     
-    CONSTRAINT zehn_03.PK_DETAIL PRIMARY KEY(ReceiptId, ProductId)
+    CONSTRAINT PK_DETAIL PRIMARY KEY(ReceiptId, ProductId)
 );
 --==========================FOREIGN KEY=======================================--
 ALTER TABLE zehn_03.PHARMACIST
