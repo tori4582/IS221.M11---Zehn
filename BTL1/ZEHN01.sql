@@ -445,6 +445,7 @@ GRANT CONNECT, CREATE SESSION TO cashier_01;
 GRANT SELECT ON zehn_01.ZEHNSTORE TO cashier_01;
 GRANT SELECT ON zehn_01.CUSTOMER TO cashier_01;
 GRANT SELECT ON zehn_01.PRODUCT TO cashier_01;
+GRANT SELECT ON zehn_01.PHARMACIST TO cashier_01;
 
 GRANT INSERT ON zehn_01.CUSTOMER TO cashier_01;
 GRANT UPDATE ON zehn_01.CUSTOMER TO cashier_01;
@@ -478,4 +479,14 @@ COMMIT;
 --==========================ISOLATION LEVEL===================================--
 
 --==========================QUERY OPTIMIZER===================================--
+
+
+
+
+
+
+
+
+
+
 
