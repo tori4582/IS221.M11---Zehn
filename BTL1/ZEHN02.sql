@@ -501,15 +501,79 @@ HAVING COUNT(D1.ProductID) >= (
     GROUP BY D1A.ProductID
 );
 
-
---==========================ISOLATION LEVEL===================================--
-
 --==========================QUERY OPTIMIZER===================================--
+------------------------CENTRALIZATION------------------------------------------
+    --Original
+EXPLAIN PLAN FOR
+SELECT 
+    Ph.PharmacistId, Ph.FullName, Ph.PhoneNumber, 
+    R.PaymentTime, 
+    ZS.StoreName
+FROM 
+    PHARMACIST Ph, 
+    RECEIPT R, 
+    CUSTOMER C,
+    ZEHNSTORE ZS
+WHERE 
+    Ph.PharmacistId = R.PharmacistId
+        AND R.CustomerId = C.PhoneNumber
+        AND R.StoreId = ZS.StoreId
+        AND (C.PhoneNumber = '0985367353' OR C.PhoneNumber = '0399988381')
+        AND R.PaymentTime BETWEEN '2021-11-15' AND '2021-11-30';
 
 
+SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY());
 
-
-
+    --Optimized
+EXPLAIN PLAN FOR
+SELECT DISTINCT
+    RPh.PharmacistId, RPh.FullName, RPh.PhoneNumber,
+    RPh.PaymentTime,
+    ZS.StoreName
+FROM
+(
+    SELECT StoreId, StoreName FROM ZEHNSTORE
+) ZS, 
+(
+    SELECT R.StoreId
+    FROM 
+    (
+    SELECT
+        PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM RECEIPT
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+    ) R, 
+    (
+        SELECT PhoneNumber FROM CUSTOMER
+        WHERE PhoneNumber = '0985367353'
+        OR PhoneNumber = '0399988381'
+    ) C
+    WHERE C.PhoneNumber = R.CustomerId
+) RC, 
+(
+    SELECT
+        Ph.PharmacistId, FullName, PhoneNumber,
+        R.StoreId, PaymentTime
+    FROM 
+    (
+        SELECT
+            PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM RECEIPT
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+    ) R, 
+    (
+        SELECT PharmacistId, FullName, PhoneNumber
+        FROM PHARMACIST
+    ) Ph
+    WHERE Ph.PharmacistId = R.PharmacistId
+) RPh
+WHERE
+    RPh.StoreId = RC.StoreId AND RPh.StoreId = ZS.StoreId;
+        
+SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY());
+   
+   
+----------------------------DISTRIBUTION----------------------------------------
 
 
 
