@@ -384,6 +384,123 @@ GRANT SELECT ON zehn_02.RECEIPTDETAIL TO cashier_02;
 --==========================FUNCTION==========================================--
 
 --==========================SELECT QUERIES====================================--
+--Cau 6: 
+--Truy van tai may ZEHN02 
+--Tai khoan thu ngan: Truoc khi thanh toan, kiem tra ZehnPoint dang tich luy de co the thay the thanh toan tien mat hay khong? In ra thong tin khach hang
+--Y nghia: Su dung trong truong hop khach hang muon su dung diem ZehnPoint de thanh toan ma khong can dung tien mat
+--Dang nhap: cashier_02/123456
+
+SELECT  
+      C2.PhoneNumber, FullName, ZehnPoint, R2.ReceiptId, R2.Total
+FROM
+	zehn_02.CUSTOMER C2, 
+      zehn_02.RECEIPT R2 
+WHERE 
+ R2.CustomerId = C2.PhoneNumber AND
+ Total <= ZehnPoint;
+
+--Cau 7: 
+--Truy van tai may ZEHN02 toi may ZEHN01
+--Tai khoan cua hang truong:  So luong tieu thu cua tung product theo tung thang tu tat ca cac chi nhanh
+--Y nghia: De biet duoc doanh so cua cac san pham theo tung vi tri de dua ra du doan kinh doanh va dieu chinh so luong nhap san pham phu hop.
+--Dang nhap: manager_02/123456
+
+
+SELECT  
+    EXTRACT(month FROM R2.PaymentTime) AS "Month" ,    
+    Sum(D2.Quantity) AS "Tong_san_luong", 
+    Pr.CountUnit,
+    Pr.ProductName
+FROM 
+    zehn_02.RECEIPTDETAIL D2,
+    zehn_02.RECEIPT R2,
+    zehn_02.PRODUCT Pr
+WHERE 
+    R2.ReceiptId = D2.ReceiptId
+    AND D2.ProductId = Pr.ProductId
+GROUP BY R2.PaymentTime, D2.Quantity, Pr.CountUnit, Pr.ProductName
+UNION
+SELECT  
+    EXTRACT(month FROM R1.PaymentTime) AS "Month" ,    
+    Sum(D1.Quantity) AS "Tong_san_luong", 
+    Pr.CountUnit,
+    Pr.ProductName
+FROM 
+    zehn_01.RECEIPTDETAIL@manager_02_01 D1,
+    zehn_01.RECEIPT@manager_02_01 R1,
+    zehn_02.PRODUCT Pr
+WHERE 
+    R1.ReceiptId = D1.ReceiptId
+    AND D1.ProductId = Pr.ProductId
+GROUP BY R1.PaymentTime, D1.Quantity, Pr.CountUnit, Pr.ProductName;
+
+--Cau 8: 
+--Truy van tai may ZEHN02 
+--Tai khoan cua hang truong: Xuat ra nhung product chi con han su dung trong 14 ngay (tinh tu ngay hom nay sysdate) tai may ZEHN02
+--Y nghia: De nhan vien hieu thuoc co the thanh ly hoac tieu huy truoc khi den han su dung
+--Dang nhap: manager_02/123456
+
+
+SELECT 
+    ProductId, ProductName
+FROM 
+     zehn_02.PRODUCT
+WHERE 
+     ExpiredDate <= (SYSDATE + 14) AND ExpiredDate > SYSDATE;
+
+--Cau 9: Truy van tai may ZEHN02 toi may ZEHN01
+--Tai khoan giam doc: In thong tin cua nhung duoc si co WorkYear >= "2015" va WorkShift = 4 tai tat ca chi nhanh
+--Y nghia: Tim xem nhung duoc si co gan bo lau voi cua hang de trao giai “Duoc Si Cu Vo”
+--Dang nhap: director/123456
+
+SELECT  Ph2.* 
+FROM 
+  zehn_02.PHARMACIST Ph2
+WHERE 
+ Ph2.WorkYear >= 2015 AND Ph2.WorkShift = 4
+UNION 
+SELECT Ph1.* 
+FROM  
+  zehn_01.PHARMACIST@director_02_01 Ph1
+WHERE 
+  Ph1.WorkYear >= 2015 AND Ph1.WorkShift = 4;
+
+--Cau 10: Truy van tai may ZEHN02 toi may ZEHN01
+--Tai khoan giam doc: Liet ke cac product duoc tieu thu nhieu nhat tai tung chi nhanh.
+--Y nghia: Tuong tu cau 7
+--Dang nhap: director/123456
+
+
+SELECT 
+    COUNT(D2.ProductID), ProductName
+FROM
+    zehn_02.RECEIPTDETAIL D2, 
+    zehn_01.PRODUCT@director_02_01 Pr
+WHERE 
+    Pr.ProductID = D2.ProductID
+GROUP BY 
+    D2.ProductID, ProductName
+HAVING COUNT(D2.ProductID) >= (
+    SELECT MAX(COUNT(D2A.ProductID))
+    FROM zehn_02.RECEIPTDETAIL D2A
+    GROUP BY D2A.ProductID
+)
+UNION
+SELECT 
+    COUNT(D1.ProductID), ProductName
+FROM
+    zehn_01.RECEIPTDETAIL@director_02_01 D1,
+    zehn_02.PRODUCT Pr 
+WHERE  
+    Pr.ProductID = D1.ProductID
+GROUP BY
+    D1.ProductID, ProductName
+HAVING COUNT(D1.ProductID) >= (
+    SELECT MAX(COUNT(D1A.ProductID))
+    FROM zehn_01.RECEIPTDETAIL@director_02_01 D1A
+    GROUP BY D1A.ProductID
+);
+
 
 --==========================ISOLATION LEVEL===================================--
 
