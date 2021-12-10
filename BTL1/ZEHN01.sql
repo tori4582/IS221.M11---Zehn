@@ -475,7 +475,150 @@ COMMIT;
 --==========================FUNCTION==========================================--
 
 --==========================SELECT QUERIES====================================--
+/**
+Cau 1: Truy van tai may ZEHN01
 
+Tai khoan cua hang truong: 
+Tim tat ca khach hang co gioi tinh la nu mua san pham thuc pham chuc nang vao ngay 20/10 va co gia tri hoa don tu 500.000 tro len.
+Y nghia: Dung trong xem xet ti le khach nu mua hang vao ngay 20/10 so voi tong luong mua cua ngay do.
+
+Dang nhap: manager_01/123456
+**/
+SELECT 
+    C.PhoneNumber, C.FullName
+FROM 
+    ZEHN_01.CUSTOMER C
+WHERE Gender = 'Nu'
+      AND NOT EXISTS (
+        SELECT * FROM ZEHN_01.RECEIPT R
+        WHERE EXTRACT(DAY FROM R.PaymentTime)= 20
+                AND EXTRACT(MONTH FROM R.PaymentTime)= 10
+                AND R.Total >= 500000
+                AND NOT EXISTS (
+                    SELECT * FROM 
+                        ZEHN_01.RECEIPTDETAIL D, 
+                        ZEHN_01.PRODUCT Pr
+                    WHERE C.PhoneNumber = R.CustomerId
+                        AND R.ReceiptId = D.ReceiptId 
+                        AND D.ProductId = Pr.ProductId
+                        AND Pr.ProductType = 'TPCN'
+                )
+    );
+
+/**
+Cau 2: Truy van tai may ZEHN01 toi may ZEHN02
+
+Tai khoan giam doc: 
+Tim nhung san pham thuc pham chuc nang (ma san pham, ten san pham) ban duoc tai nha thuoc ZENH01 nhung khong ban duoc tai nha thuoc ZENH02.
+Y nghia: Nham nam duoc loai san pham khong co phan khuc khach hang phu hop voi moi dia phuong khac nhau.
+
+Dang nhap: director/123456
+**/
+SELECT 
+    Pr.ProductId, Pr.ProductName
+FROM 
+    ZEHN_01.PRODUCT Pr INNER JOIN ZEHN_01.RECEIPTDETAIL D1
+        ON Pr.ProductId = D1.ProductId
+WHERE Pr.ProductType = 'TPCN'
+MINUS
+SELECT 
+    Pr.ProductId, Pr.ProductName
+FROM  
+    ZEHN_01.PRODUCT Pr INNER JOIN ZEHN_02.RECEIPTDETAIL@director_01_02 D2
+        ON Pr.ProductId = D2.ProductId
+WHERE Pr.ProductType = 'TPCN';
+
+/**
+Cau 3: Truy van tai may ZEHN01 toi may ZEHN02
+
+Tai khoan cua hang truong: 
+Khach hang co so dien thoai “0985367353” va  “0399988381” duoc phat hien duong tinh voi Covid-19. 
+Xuat thong tin nhan vien (ma nhan vien, ten nhan vien, so dien thoai, ngay ban) o tat ca chi nhanh tung tiep xuc voi hai khach hang tren 
+trong khoang thoi gian tu ngay 15/11/2021 den 30/11/2021.
+
+Dang nhap: manager_01/123456
+**/
+SELECT 
+    Ph1.PharmacistId, Ph1.FullName, Ph1.PhoneNumber, R1.PaymentTime
+FROM 
+    ZEHN_01.PHARMACIST Ph1, 
+    ZEHN_01.RECEIPT R1, 
+    ZEHN_01.CUSTOMER C1
+WHERE 
+    Ph1.PharmacistId = R1.PharmacistId
+        AND R1.CustomerId = C1.PhoneNumber
+        AND (C1.PhoneNumber = '0985367353' OR C1.PhoneNumber = '0399988381')
+        AND R1.PaymentTime BETWEEN  
+            TO_DATE('2021-11-15', 'YYYY-MM-DD') 
+            AND TO_DATE('2021-11-30', 'YYYY-MM-DD')
+UNION
+SELECT 
+    Ph2.PharmacistId, Ph2.FullName, Ph2.PhoneNumber, R2.PaymentTime
+FROM 
+    ZEHN_02.PHARMACIST@manager_01_02 Ph2, 
+    ZEHN_02.RECEIPT@manager_01_02 R2, 
+    ZEHN_01.CUSTOMER C2
+WHERE 
+    Ph2.PharmacistId = R2.PharmacistId
+        AND R2.CustomerId = C2.PhoneNumber
+        AND R2.PaymentTime BETWEEN  
+            TO_DATE('2021-11-15', 'YYYY-MM-DD') 
+            AND TO_DATE('2021-11-30', 'YYYY-MM-DD')
+        AND (C2.PhoneNumber = '0985367353' OR C2.PhoneNumber = '0399988381');
+
+/**
+Cau 4: Truy van tai may ZEHN01 toi may ZEHN02
+
+Tai khoan cua hang truong: 
+Tim san pham con han su dung 30 ngay va deu chua ban duoc lan nao o tat ca chi nhanh.
+Y nghia: Nham tim ra san pham khong ban duoc de co the huy bo hang ton va tranh nhap them don hang moi
+
+Dang nhap: manager_01/123456
+**/
+SELECT * FROM ZEHN_01.PRODUCT Pr
+WHERE 
+    Pr.ExpiredDate <= (SYSDATE + 30) 
+    AND Pr.ExpiredDate > SYSDATE
+    AND Pr.ProductId NOT IN (
+        SELECT Pr.ProductId FROM 
+            ZEHN_01.RECEIPT R1, ZEHN_01.RECEIPTDETAIL D1
+        WHERE 
+            R1.ReceiptId = D1.ReceiptId
+            AND D1.ProductId = Pr.ProductId
+    )
+INTERSECT
+SELECT * FROM ZEHN_01.PRODUCT Pr
+WHERE 
+    Pr.ExpiredDate <= (SYSDATE + 30) 
+    AND Pr.ExpiredDate > SYSDATE
+    AND Pr.ProductId NOT IN (
+        SELECT Pr.ProductId FROM 
+            ZEHN_02.RECEIPT@manager_01_02 R2, 
+            ZEHN_02.RECEIPTDETAIL@manager_01_02 D2
+        WHERE R2.ReceiptId = D2.ReceiptId
+            AND D2.ProductId = Pr.ProductId
+    );
+
+/**
+Cau 5: Truy xuat tai may ZEHN01
+
+Tai khoan thu ngan: In thong tin tong so luong don vi san pham thanh toan bang “Credit Card” va tong doanh thu theo thoi gian trong ngay (ca).
+Y nghia: Thong ke duoc ty le nguoi dung thanh toan bang the ngan hang va lap bang chi tiet sao ke cho ben ngan hang lien ket.
+
+Dang nhap: cashier_01/123456
+**/
+
+SELECT 
+    Ph1.WorkShift, SUM(D1.Quantity), SUM(D1.AMOUNT)
+FROM 
+    ZEHN_01.PHARMACIST Ph1, 
+    ZEHN_01.RECEIPT R1, 
+    ZEHN_01.RECEIPTDETAIL D1
+WHERE  
+    Ph1.PharmacistId = R1.PharmacistId
+    AND R1.ReceiptId = D1.ReceiptId
+    AND R1.PaymentMethod = 'Credit'
+GROUP BY Ph1.WorkShift;
 --==========================ISOLATION LEVEL===================================--
 
 --==========================QUERY OPTIMIZER===================================--
