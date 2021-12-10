@@ -339,6 +339,9 @@ GRANT UPDATE ON zehn_02.PHARMACIST TO manager_02;
 GRANT INSERT ON zehn_02.PHARMACIST TO manager_02;
 GRANT DELETE ON zehn_02.PHARMACIST TO manager_02;
 
+    --CUSTOMER
+grant select on zehn_02.customer to manager_02;
+
     -- RECEIPT
 GRANT INSERT ON zehn_02.RECEIPT TO manager_02;      
 GRANT UPDATE ON zehn_02.RECEIPT TO manager_02;
@@ -376,8 +379,21 @@ GRANT SELECT ON zehn_02.RECEIPTDETAIL TO cashier_02;
 
 --==========================TRIGGER===========================================--
 -- create or replace TRIGGER
-
--- test the TRIGGERs
+/*
+D??c s? ph?i ?? 18 tu?i khi vào làm vi?c
+B?i c?nh: PHARMACIST
+N?i dung: \forall p \in PHARMACIST(p.(WorkYear-YEAR(DoB)) <18)
+B?ng t?m ?nh h??ng: 
+            Insert  Delete  Update
+PHARMACIST    +       -       +(WorkYear, DoB)
+*/
+CREATE OR REPLACE TRIGGER trg_PHARMACIST_insert
+AFTER INSERT OR UPDATE ON zehn_02.PHARMACIST FOR EACH ROW
+BEGIN
+    IF (:NEW.WorkYear - EXTRACT(year FROM :NEW.Dob)<18) THEN
+        RAISE_APPLICATION_ERROR(-20100, 'Duoc si phai toi thieu 18 tuoi khi vao lam viec');
+    END IF; 
+END;
 
 --==========================PROCEDURE=========================================--
 
@@ -574,6 +590,63 @@ SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY());
    
    
 ----------------------------DISTRIBUTION----------------------------------------
+SELECT DISTINCT
+    RPh.PharmacistId, RPh.FullName, RPh.PhoneNumber,
+    RPh.PaymentTime,
+    ZS.StoreName
+FROM
+(
+    SELECT StoreId, StoreName 
+    FROM zehn_02.ZEHNSTORE
+    UNION
+    SELECT StoreId, StoreName 
+    FROM zehn_01.ZEHNSTORE@manager_02_01
+) ZS, 
+(
+    SELECT R.StoreId
+    FROM 
+    (
+        SELECT PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM zehn_02.RECEIPT
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+        UNION
+        SELECT PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM zehn_01.RECEIPT@manager_02_01
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+    ) R, 
+    (
+        SELECT PhoneNumber 
+        FROM zehn_02.CUSTOMER
+        WHERE PhoneNumber = '0985367353' OR PhoneNumber = '0399988381'
+    ) C
+    WHERE C.PhoneNumber = R.CustomerId
+) RC, 
+(
+    SELECT
+        Ph.PharmacistId, FullName, PhoneNumber,
+        R.StoreId, PaymentTime
+    FROM 
+    (
+        SELECT PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM zehn_02.RECEIPT
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+        UNION
+        SELECT PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM zehn_01.RECEIPT@manager_02_01
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+    ) R, 
+    (
+        SELECT PharmacistId, FullName, PhoneNumber
+        FROM zehn_02.PHARMACIST
+        UNION
+        SELECT PharmacistId, FullName, PhoneNumber
+        FROM zehn_01.PHARMACIST@manager_02_01
+    ) Ph
+    WHERE Ph.PharmacistId = R.PharmacistId
+) RPh
+WHERE
+    RPh.StoreId = RC.StoreId AND RPh.StoreId = ZS.StoreId;
+
 
 
 

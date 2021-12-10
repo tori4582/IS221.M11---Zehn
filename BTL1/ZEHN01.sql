@@ -467,8 +467,22 @@ COMMIT;
 
 --==========================TRIGGER===========================================--
 -- create or replace TRIGGER
+/*
+D??c s? ph?i ?? 18 tu?i khi vào làm vi?c
+B?i c?nh: PHARMACIST
+N?i dung: \forall p \in PHARMACIST(p.(WorkYear-YEAR(DoB)) <18)
+B?ng t?m ?nh h??ng: 
+            Insert  Delete  Update
+PHARMACIST    +       -       +(WorkYear, DoB)
+*/
+CREATE OR REPLACE TRIGGER trg_PHARMACIST_insert
+AFTER INSERT OR UPDATE ON zehn_01.PHARMACIST FOR EACH ROW
+BEGIN
+    IF (:NEW.WorkYear - EXTRACT(year FROM :NEW.Dob)<18) THEN
+        RAISE_APPLICATION_ERROR(-20100, 'Duoc si phai toi thieu 18 tuoi khi vao lam viec');
+    END IF; 
+END;
 
--- test the TRIGGERs
 
 --==========================PROCEDURE=========================================--
 
@@ -695,7 +709,62 @@ SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY());
    
    
 ----------------------------DISTRIBUTION----------------------------------------
-
+SELECT DISTINCT
+    RPh.PharmacistId, RPh.FullName, RPh.PhoneNumber,
+    RPh.PaymentTime,
+    ZS.StoreName
+FROM
+(
+    SELECT StoreId, StoreName 
+    FROM zehn_01.ZEHNSTORE
+    UNION
+    SELECT StoreId, StoreName 
+    FROM zehn_02.ZEHNSTORE@manager_01_02
+) ZS, 
+(
+    SELECT R.StoreId
+    FROM 
+    (
+        SELECT PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM zehn_01.RECEIPT
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+        UNION
+        SELECT PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM zehn_02.RECEIPT@manager_01_02
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+    ) R, 
+    (
+        SELECT PhoneNumber 
+        FROM zehn_01.CUSTOMER
+        WHERE PhoneNumber = '0985367353' OR PhoneNumber = '0399988381'
+    ) C
+    WHERE C.PhoneNumber = R.CustomerId
+) RC, 
+(
+    SELECT
+        Ph.PharmacistId, FullName, PhoneNumber,
+        R.StoreId, PaymentTime
+    FROM 
+    (
+        SELECT PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM zehn_01.RECEIPT
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+        UNION
+        SELECT PharmacistId, CustomerId, StoreId, PaymentTime
+        FROM zehn_02.RECEIPT@manager_01_02
+        WHERE PaymentTime BETWEEN ('2021-11-15') AND ('2021-11-30')
+    ) R, 
+    (
+        SELECT PharmacistId, FullName, PhoneNumber
+        FROM zehn_01.PHARMACIST
+        UNION
+        SELECT PharmacistId, FullName, PhoneNumber
+        FROM zehn_02.PHARMACIST@manager_01_02
+    ) Ph
+    WHERE Ph.PharmacistId = R.PharmacistId
+) RPh
+WHERE
+    RPh.StoreId = RC.StoreId AND RPh.StoreId = ZS.StoreId;
 
 
 
