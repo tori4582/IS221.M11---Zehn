@@ -449,7 +449,7 @@ RETURN NUMBER
 IS total_sum NUMBER :=0;
 BEGIN
 SELECT SUM(R.Total)INTO total_sum
-FROM ZEHN_01.Receipt R
+FROM ZEHN_02.Receipt R
 WHERE R.CustomerId = v_CustomerId;
 RETURN total_sum;
 END;
