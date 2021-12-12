@@ -380,10 +380,10 @@ GRANT SELECT ON zehn_02.RECEIPTDETAIL TO cashier_02;
 --==========================TRIGGER===========================================--
 -- create or replace TRIGGER
 /*
-D??c s? ph?i ?? 18 tu?i khi vào làm vi?c
-B?i c?nh: PHARMACIST
-N?i dung: \forall p \in PHARMACIST(p.(WorkYear-YEAR(DoB)) <18)
-B?ng t?m ?nh h??ng: 
+Duoc si phai du 18 tuoi khi vao lam viec:
+Boi canh: PHARMACIST
+Noi dung: \forall p \in PHARMACIST(p.(WorkYear-YEAR(DoB)) <18)
+Bang tam anh huong: 
             Insert  Delete  Update
 PHARMACIST    +       -       +(WorkYear, DoB)
 */
@@ -396,24 +396,83 @@ BEGIN
 END;
 
 --==========================PROCEDURE=========================================--
+--Procedure: Thay doi ca lam WorkShift cua pharmacist
+--Procedure Name: ChangeWorkShift
+--Arguments: v_PharmacistID (Ma duoc si) , v_WorkShift  
+(Ca lam viec)
+ 
+--Side effect: Tim duoc si co v_PharmacistID trong bang PHARMACIST tai tung chi nhanh va neu tim thay thay doi WorkShift thanh v_WorkShift
+-- su dung tai khoan: director/123456
+connect director/123456
+
+CREATE OR REPLACE PROCEDURE ChangeWorkShift (v_PharmacistID in VARCHAR2, v_WorkShift in NUMBER)
+AS
+ dem int;
+BEGIN
+ SELECT COUNT(Ph2.PharmacistID) INTO dem 
+ FROM zehn_02.PHARMACIST Ph2
+ WHERE Ph2.PharmacistID = v_PharmacistID;
+ IF (dem=1) THEN
+	UPDATE zehn_02.PHARMACIST
+	SET WorkShift = v_WorkShift
+	WHERE PharmacistID = v_PharmacistID;
+ ELSE
+  SELECT COUNT(Ph1.PharmacistID) INTO dem 
+  FROM zehn_01.PHARMACIST@director_02_01  Ph1
+  WHERE Ph1.PharmacistID = v_PharmacistID;
+   IF (dem =1) THEN
+	UPDATE zehn_01.PHARMACIST@director_02_01
+	SET WorkShift = v_WorkShift
+	WHERE PharmacistID = v_PharmacistID;
+   END IF;
+ END IF;
+COMMIT;
+END;
+
+-- truoc khi chay Procedure
+select WorkShift,PHARMACISTID from PHARMACIST where PHARMACISTID = 'PH21';
+-- thuc hien Procedure
+begin 
+   ChangeWorkShift ('PH21', 4);
+end;
+-- sau khi chay
+select WorkShift,PHARMACISTID from PHARMACIST where PHARMACISTID = 'PH21';
 
 --==========================FUNCTION==========================================--
+--Function: Tinh tong tien cac hoa don cua mot khach hang bat ky
+--Function Name: SumTotalMoney
+--Arguments: v_CustomerId  (Ma khach hang)
+--Output: Tong tien cac hoa don cua khach hang v_CustomerId
+
+CREATE OR REPLACE FUNCTION SumToTalMoney(v_CustomerId IN VARCHAR2)
+RETURN NUMBER
+IS total_sum NUMBER :=0;
+BEGIN
+SELECT SUM(R.Total)INTO total_sum
+FROM ZEHN_01.Receipt R
+WHERE R.CustomerId = v_CustomerId;
+RETURN total_sum;
+END;
+
+-- test fuction
+select distinct SumTotalMoney ('0985367353') from CUSTOMER;
 
 --==========================SELECT QUERIES====================================--
 --Cau 6: 
---Truy van tai may ZEHN02 
---Tai khoan thu ngan: Truoc khi thanh toan, kiem tra ZehnPoint dang tich luy de co the thay the thanh toan tien mat hay khong? In ra thong tin khach hang
---Y nghia: Su dung trong truong hop khach hang muon su dung diem ZehnPoint de thanh toan ma khong can dung tien mat
+--Truy van tai may ZEHN_02 
+--Tai khoan thu ngan: In ra thong tin khach hang nhung khach hang dang co ZehnPoint tich luy toi thieu la 100k tro len.
+--Y nghia: Lap  danh sach nhung  khach hang co the su dung diem ZehnPoint de thanh toan ma khong can dung tien mat cho lan thanh toan tiep theo.
 --Dang nhap: cashier_02/123456
 
-SELECT  
-      C2.PhoneNumber, FullName, ZehnPoint, R2.ReceiptId, R2.Total
+
+SELECT
+    C2.PhoneNumber, FullName, ZehnPoint
 FROM
-	zehn_02.CUSTOMER C2, 
-      zehn_02.RECEIPT R2 
+    zehn_02.CUSTOMER C2 
 WHERE 
- R2.CustomerId = C2.PhoneNumber AND
- Total <= ZehnPoint;
+    ZehnPoint >= 100000;
+
+
 
 --Cau 7: 
 --Truy van tai may ZEHN02 toi may ZEHN01
@@ -457,12 +516,16 @@ GROUP BY R1.PaymentTime, D1.Quantity, Pr.CountUnit, Pr.ProductName;
 --Dang nhap: manager_02/123456
 
 
+
 SELECT 
-    ProductId, ProductName
+    ProductId, ProductName, ExpiredDate 
 FROM 
      zehn_02.PRODUCT
 WHERE 
      ExpiredDate <= (SYSDATE + 14) AND ExpiredDate > SYSDATE;
+
+
+
 
 --Cau 9: Truy van tai may ZEHN02 toi may ZEHN01
 --Tai khoan giam doc: In thong tin cua nhung duoc si co WorkYear >= "2015" va WorkShift = 4 tai tat ca chi nhanh
@@ -488,14 +551,16 @@ WHERE
 
 
 SELECT 
-    COUNT(D2.ProductID), ProductName
+    R2.StoreId, COUNT(D2.ProductID), ProductName
 FROM
     zehn_02.RECEIPTDETAIL D2, 
-    zehn_01.PRODUCT@director_02_01 Pr
+    zehn_02.PRODUCT Pr,
+    zehn_02.RECEIPT R2
 WHERE 
     Pr.ProductID = D2.ProductID
+        AND R2.ReceiptId = D2.ReceiptId
 GROUP BY 
-    D2.ProductID, ProductName
+    R2.StoreId, D2.ProductID, ProductName
 HAVING COUNT(D2.ProductID) >= (
     SELECT MAX(COUNT(D2A.ProductID))
     FROM zehn_02.RECEIPTDETAIL D2A
@@ -503,19 +568,22 @@ HAVING COUNT(D2.ProductID) >= (
 )
 UNION
 SELECT 
-    COUNT(D1.ProductID), ProductName
+    R1.StoreId, COUNT(D1.ProductID), ProductName
 FROM
     zehn_01.RECEIPTDETAIL@director_02_01 D1,
-    zehn_02.PRODUCT Pr 
+    zehn_01.PRODUCT@director_02_01 Pr,
+    zehn_01.RECEIPT@director_02_01 R1
 WHERE  
     Pr.ProductID = D1.ProductID
+        AND R1.ReceiptId = D1.ReceiptId
 GROUP BY
-    D1.ProductID, ProductName
+    R1.StoreId, D1.ProductID, ProductName
 HAVING COUNT(D1.ProductID) >= (
     SELECT MAX(COUNT(D1A.ProductID))
     FROM zehn_01.RECEIPTDETAIL@director_02_01 D1A
     GROUP BY D1A.ProductID
 );
+
 
 --==========================QUERY OPTIMIZER===================================--
 ------------------------CENTRALIZATION------------------------------------------
