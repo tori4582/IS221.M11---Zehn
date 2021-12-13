@@ -380,26 +380,30 @@ GRANT SELECT ON zehn_02.RECEIPTDETAIL TO cashier_02;
 --==========================TRIGGER===========================================--
 -- create or replace TRIGGER
 /*
-Duoc si phai du 18 tuoi khi vao lam viec:
+Duoc si phai du 18 tuoi khi vao lam viec
 Boi canh: PHARMACIST
 Noi dung: \forall p \in PHARMACIST(p.(WorkYear-YEAR(DoB)) <18)
 Bang tam anh huong: 
             Insert  Delete  Update
 PHARMACIST    +       -       +(WorkYear, DoB)
 */
+
 CREATE OR REPLACE TRIGGER trg_PHARMACIST_insert
-AFTER INSERT OR UPDATE ON zehn_02.PHARMACIST FOR EACH ROW
+AFTER INSERT OR UPDATE ON zehn_01.PHARMACIST FOR EACH ROW
 BEGIN
     IF (:NEW.WorkYear - EXTRACT(year FROM :NEW.Dob)<18) THEN
         RAISE_APPLICATION_ERROR(-20100, 'Duoc si phai toi thieu 18 tuoi khi vao lam viec');
     END IF; 
 END;
 
+-- test the trigger
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS';
+INSERT INTO zehn_02.PHARMACIST VALUES('Ph_test', 'Nguyen Van A', 'Nam', '2006-12-23', '0969334734', 'huyen Cao Loc, Lang Son', 2021, 1, 'ZS02');
+
 --==========================PROCEDURE=========================================--
 --Procedure: Thay doi ca lam WorkShift cua pharmacist
 --Procedure Name: ChangeWorkShift
---Arguments: v_PharmacistID (Ma duoc si) , v_WorkShift  
-(Ca lam viec)
+--Arguments: v_PharmacistID (Ma duoc si) , v_WorkShift  (Ca lam viec)
  
 --Side effect: Tim duoc si co v_PharmacistID trong bang PHARMACIST tai tung chi nhanh va neu tim thay thay doi WorkShift thanh v_WorkShift
 -- su dung tai khoan: director/123456
@@ -464,7 +468,6 @@ select distinct SumTotalMoney ('0985367353') from CUSTOMER;
 --Y nghia: Lap  danh sach nhung  khach hang co the su dung diem ZehnPoint de thanh toan ma khong can dung tien mat cho lan thanh toan tiep theo.
 --Dang nhap: cashier_02/123456
 
-
 SELECT
     C2.PhoneNumber, FullName, ZehnPoint
 FROM
@@ -472,14 +475,11 @@ FROM
 WHERE 
     ZehnPoint >= 100000;
 
-
-
 --Cau 7: 
 --Truy van tai may ZEHN02 toi may ZEHN01
 --Tai khoan cua hang truong:  So luong tieu thu cua tung product theo tung thang tu tat ca cac chi nhanh
 --Y nghia: De biet duoc doanh so cua cac san pham theo tung vi tri de dua ra du doan kinh doanh va dieu chinh so luong nhap san pham phu hop.
 --Dang nhap: manager_02/123456
-
 
 SELECT  
     EXTRACT(month FROM R2.PaymentTime) AS "Month" ,    
@@ -515,17 +515,12 @@ GROUP BY R1.PaymentTime, D1.Quantity, Pr.CountUnit, Pr.ProductName;
 --Y nghia: De nhan vien hieu thuoc co the thanh ly hoac tieu huy truoc khi den han su dung
 --Dang nhap: manager_02/123456
 
-
-
 SELECT 
     ProductId, ProductName, ExpiredDate 
 FROM 
      zehn_02.PRODUCT
 WHERE 
      ExpiredDate <= (SYSDATE + 14) AND ExpiredDate > SYSDATE;
-
-
-
 
 --Cau 9: Truy van tai may ZEHN02 toi may ZEHN01
 --Tai khoan giam doc: In thong tin cua nhung duoc si co WorkYear >= "2015" va WorkShift = 4 tai tat ca chi nhanh
@@ -548,7 +543,6 @@ WHERE
 --Tai khoan giam doc: Liet ke cac product duoc tieu thu nhieu nhat tai tung chi nhanh.
 --Y nghia: Tuong tu cau 7
 --Dang nhap: director/123456
-
 
 SELECT 
     R2.StoreId, COUNT(D2.ProductID), ProductName
@@ -588,8 +582,7 @@ HAVING COUNT(D1.ProductID) >= (
 --==========================QUERY OPTIMIZER===================================--
 ------------------------CENTRALIZATION------------------------------------------
     --Original
-EXPLAIN PLAN FOR
-SELECT 
+SELECT /*+ GATHER_PLAN_STATISTICS */
     Ph.PharmacistId, Ph.FullName, Ph.PhoneNumber, 
     R.PaymentTime, 
     ZS.StoreName
@@ -605,12 +598,10 @@ WHERE
         AND (C.PhoneNumber = '0985367353' OR C.PhoneNumber = '0399988381')
         AND R.PaymentTime BETWEEN '2021-11-15' AND '2021-11-30';
 
-
-SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY());
+SELECT * FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
 
     --Optimized
-EXPLAIN PLAN FOR
-SELECT DISTINCT
+SELECT /*+ GATHER_PLAN_STATISTICS */
     RPh.PharmacistId, RPh.FullName, RPh.PhoneNumber,
     RPh.PaymentTime,
     ZS.StoreName
@@ -653,8 +644,8 @@ FROM
 ) RPh
 WHERE
     RPh.StoreId = RC.StoreId AND RPh.StoreId = ZS.StoreId;
-        
-SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY());
+    
+SELECT * FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));        
    
    
 ----------------------------DISTRIBUTION----------------------------------------

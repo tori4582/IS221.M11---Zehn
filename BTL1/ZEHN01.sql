@@ -163,7 +163,7 @@ INSERT INTO zehn_01.CUSTOMER VALUES('0976716565', 'Pham Ha Nhi', 'Nu', '1985-04-
 INSERT INTO zehn_01.CUSTOMER VALUES('0349093356', 'Nguyen Chi Lan', 'Nu', '1990-04-29', 103000, 'BasicCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0845126570', 'Ngo Nguyen Ngoc Quynh', 'Nu', '1991-05-14', 30500, 'BasicCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0392215332', 'Nguyen Van Thanh Y', 'Nam', '1984-02-06', 5000, 'BasicCare');
-INSERT INTO zehn_01.CUSTOMER VALUES('0825558746', 'Nguyen √êong Hai', 'Nam', '1993-04-28', 44000, 'StandardCare');
+INSERT INTO zehn_01.CUSTOMER VALUES('0825558746', 'Nguyen √?ong Hai', 'Nam', '1993-04-28', 44000, 'StandardCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0380882442', 'Le Minh Huy', 'Nam', '1995-12-27', 8000, 'BasicCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0332051377', 'Pham Tran Hai Thuy', 'Nam', '2000-05-02', 503000, 'BasicCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0865087093', 'Vu Bao Huynh', 'Nam', '1982-09-05', 24500, 'StandardCare');
@@ -172,7 +172,7 @@ INSERT INTO zehn_01.CUSTOMER VALUES('0836564633', 'Nguyen Thi My Dung', 'Nu', '1
 INSERT INTO zehn_01.CUSTOMER VALUES('0355972520', 'Nguyen Hoang Phi Phi', 'Nu', '1984-12-06', 12300, 'ExtraCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0373677397', 'Le Thanh Hao', 'Nu', '1984-12-06', 12300, 'ExtraCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0967973007', 'Dang Trung Nhan', 'Nam', '1982-07-14', 103500, 'StandardCare');
-INSERT INTO zehn_01.CUSTOMER VALUES('0791280861', 'Le Vo √êat Hoa', 'Nam', '1992-12-31', 2500, 'BasicCare');
+INSERT INTO zehn_01.CUSTOMER VALUES('0791280861', 'Le Vo √?at Hoa', 'Nam', '1992-12-31', 2500, 'BasicCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0328349238', 'Duong Hoang Cao Nguyen', 'Nam', '1998-12-01', 15500, 'BasicCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0784878027', 'Dang Cao Nguyen', 'Nam', '1992-06-18', 32000, 'BasicCare');
 INSERT INTO zehn_01.CUSTOMER VALUES('0827397398', 'Nguyen Nguyet Minh', 'Nu', '2004-09-10', 80000, 'StandardCare');
@@ -191,7 +191,7 @@ INSERT INTO zehn_01.CUSTOMER VALUES('0864952075', 'Nguyen Vu Khanh Hoan', 'Nam',
 INSERT INTO zehn_01.CUSTOMER VALUES('0333967718', 'Nguyen Quang Danh', 'Nam', '1988-02-06', 890500, 'ExtraCare');  
 INSERT INTO zehn_01.CUSTOMER VALUES('0866070516', 'Nguyen Ngo Thai Sang', 'Nam', '1999-09-03', 56000, 'ExtraCare');  
 INSERT INTO zehn_01.CUSTOMER VALUES('0361412774', 'Dang Nguyen Anh Minh', 'Nam', '1992-03-06', 2600, 'StandardCare');  
-INSERT INTO zehn_01.CUSTOMER VALUES('0831730136', 'Nguyen Tran Lam √êong', 'Nam', '1998-05-14', 7800, 'BasicCare');  
+INSERT INTO zehn_01.CUSTOMER VALUES('0831730136', 'Nguyen Tran Lam √?ong', 'Nam', '1998-05-14', 7800, 'BasicCare');  
 INSERT INTO zehn_01.CUSTOMER VALUES('0847900236', 'Nguyen Le Minh Khue', 'Nu', '1985-12-25', 9000, 'BasicCare');  
 INSERT INTO zehn_01.CUSTOMER VALUES('0356702531', 'Huynh Trong Tuong', 'Nam', '1985-04-17', 77200, 'ExtraCare');  
 INSERT INTO zehn_01.CUSTOMER VALUES('0355395581', 'Pham Van Quang', 'Nam', '1985-07-23', 51000, 'StandardCare');  
@@ -468,10 +468,10 @@ COMMIT;
 --==========================TRIGGER===========================================--
 -- create or replace TRIGGER
 /*
-D??c s? ph?i ?? 18 tu?i khi v√†o l√†m vi?c
-B?i c?nh: PHARMACIST
-N?i dung: \forall p \in PHARMACIST(p.(WorkYear-YEAR(DoB)) <18)
-B?ng t?m ?nh h??ng: 
+Duoc si phai du 18 tuoi khi vao lam viec
+Boi canh: PHARMACIST
+Noi dung: \forall p \in PHARMACIST(p.(WorkYear-YEAR(DoB)) <18)
+Bang tam anh huong: 
             Insert  Delete  Update
 PHARMACIST    +       -       +(WorkYear, DoB)
 */
@@ -483,11 +483,14 @@ BEGIN
     END IF; 
 END;
 
+-- test the trigger
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS';
+INSERT INTO zehn_01.PHARMACIST VALUES('Ph_test', 'Nguyen Van A', 'Nam', '2006-12-23', '0969334734', 'huyen Cao Loc, Lang Son', 2021, 1, 'ZS01');
+
 --==========================PROCEDURE=========================================--
 --Procedure: Thay doi ca lam WorkShift cua pharmacist
 --Procedure Name: ChangeWorkShift
---Arguments: v_PharmacistID (Ma duoc si) , v_WorkShift  
-(Ca lam viec)
+--Arguments: v_PharmacistID (Ma duoc si) , v_WorkShift  (Ca lam viec)
  
 --Side effect: Tim duoc si co v_PharmacistID trong bang PHARMACIST tai tung chi nhanh va neu tim thay thay doi WorkShift thanh v_WorkShift
 -- su dung tai khoan: director/123456
@@ -694,8 +697,7 @@ GROUP BY Ph1.WorkShift;
 --==========================QUERY OPTIMIZER===================================--
 ------------------------CENTRALIZATION------------------------------------------
     --Original
-EXPLAIN PLAN FOR
-SELECT 
+SELECT /*+ GATHER_PLAN_STATISTICS */
     Ph.PharmacistId, Ph.FullName, Ph.PhoneNumber, 
     R.PaymentTime, 
     ZS.StoreName
@@ -710,13 +712,12 @@ WHERE
         AND R.StoreId = ZS.StoreId
         AND (C.PhoneNumber = '0985367353' OR C.PhoneNumber = '0399988381')
         AND R.PaymentTime BETWEEN '2021-11-15' AND '2021-11-30';
-
-
-SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY());
+        
+SELECT * FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
 
     --Optimized
 EXPLAIN PLAN FOR
-SELECT DISTINCT
+SELECT /*+ GATHER_PLAN_STATISTICS */
     RPh.PharmacistId, RPh.FullName, RPh.PhoneNumber,
     RPh.PaymentTime,
     ZS.StoreName
@@ -762,7 +763,8 @@ WHERE
         
 SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY());
    
-   
+SELECT * FROM TABLE(DBMS_XPLAN.display_cursor(format=>'ALLSTATS LAST'));
+
 ----------------------------DISTRIBUTION----------------------------------------
 SELECT DISTINCT
     RPh.PharmacistId, RPh.FullName, RPh.PhoneNumber,
